@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ModelSelector } from '@/components/model-selector';
 // import { ResponseCard } from '@/components/response-card';
@@ -95,11 +95,11 @@ export default function EvaluatePage() {
       <div className="grid gap-8">
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Enter Your Prompt</h2>
-          <Textarea
+          <Input
             placeholder="Enter your prompt here..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-[120px] mb-4"
+            className="min-h-[40px] mb-4 border border-gray-400"
           />
           <ModelSelector
             selectedModels={selectedModels}

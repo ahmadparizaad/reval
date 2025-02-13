@@ -34,7 +34,7 @@ export function ModelSelector({ selectedModels, onSelectModels }: ModelSelectorP
             <Button
               key={model.id}
               variant={isSelected ? "default" : "outline"}
-              className="justify-start"
+              className="justify-start border border-gray-400"
               onClick={() => toggleModel(model.id)}
             >
               <Check

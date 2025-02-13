@@ -2,21 +2,26 @@
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { useUser } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation';
 // import { useUser } from '@clerk/nextjs'
 
 export function HeroSection() {
-  // const { user } = useUser();
-  // const handleEvaluate = () => {
-  //   if(user){
-  //     window.location.href = "/evaluate";
-  //   } else{
-  //     toast({
-  //       title: 'You need to be signed in',
-  //       description: 'Please sign in to continue',
-  //       variant: 'destructive',
-  //     });
-  //   }}
+  const { user } = useUser();
+  const router = useRouter();
+
+  const handleEvaluate = () => {
+    if (user) {
+      router.push('/evaluate');
+    } else {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to start evaluating',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="relative isolate">
       <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
@@ -41,11 +46,9 @@ export function HeroSection() {
             Reval helps you evaluate and compare responses from different Language Models. Get detailed accuracy scores, collect user feedback, and make informed decisions about which LLM works best for your needs.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
-            <Button asChild size="lg">
-              <Link href="/evaluate">
-                Start Evaluating
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+            <Button size="lg" onClick={handleEvaluate}>
+              Start Evaluating
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
             {/* <Button variant="outline" size="lg" asChild>
               <Link href="/docs">Learn more</Link>

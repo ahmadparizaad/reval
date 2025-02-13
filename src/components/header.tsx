@@ -9,10 +9,28 @@ import {
   SignedIn,
   SignedOut,
   UserButton,
+  useUser,
 } from '@clerk/nextjs'
 import { Button } from "./ui/button";
+import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
+  const { user } = useUser();
+  const router = useRouter();
+
+  const handleProtectedNavigation = (path: string) => {
+    if (user) {
+      router.push(path);
+    } else {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to access this feature',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b px-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
@@ -22,12 +40,18 @@ export default function Header() {
             <span className="font-bold">Reval</span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
-            <Link href="/evaluate" className="transition-colors hover:text-foreground/80">
+            <button 
+              onClick={() => handleProtectedNavigation('/evaluate')}
+              className="transition-colors hover:text-foreground/80"
+            >
               Evaluate
-            </Link>
-            <Link href="/history" className="transition-colors hover:text-foreground/80">
+            </button>
+            <button 
+              onClick={() => handleProtectedNavigation('/history')}
+              className="transition-colors hover:text-foreground/80"
+            >
               History
-            </Link>
+            </button>
             {/* <Link href="/docs" className="transition-colors hover:text-foreground/80">
               Docs
             </Link> */}
