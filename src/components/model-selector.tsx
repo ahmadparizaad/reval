@@ -4,7 +4,7 @@ import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const availableModels = [
-  { id: 'gpt-4', name: 'GPT-4' },
+  { id: 'gpt-4o-mini', name: 'GPT-4' },
   { id: 'claude-2', name: 'Claude 2' },
   { id: 'gemini-1.5-flash', name: 'Gemini-1.5-flash' },
   { id: 'palm', name: 'PaLM' },

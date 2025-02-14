@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { callGemini } from "@/lib/llm-config";
+import { callGemini, callOpenAI } from "@/lib/llm-config";
 
 export async function POST(request: NextRequest){
   try{
@@ -12,7 +12,9 @@ export async function POST(request: NextRequest){
     );
   }
 
-  const responses = await callGemini(prompt, models[0]);
+  // const responses = await callGemini(prompt, models[0]);
+  console.log(models)
+  const responses = await callOpenAI(prompt, models[1]);
   
   
   // const responses = await generateLLMResponses(prompt, models);

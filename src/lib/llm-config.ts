@@ -1,5 +1,6 @@
 import axios from "axios";
 import { NextResponse } from "next/server";
+import OpenAI from "openai";
 
 export async function callGemini(prompt: string, model: string) {
     try{
@@ -28,3 +29,30 @@ export async function callGemini(prompt: string, model: string) {
         {status: 501}
       );
   }}
+
+export async function callOpenAI(prompt:string, model:string){
+  try{
+    const openai = new OpenAI();
+    const completion = await openai.chat.completions.create({
+      model: model,
+      messages: [
+          { role: "system", content: "You are a helpful assistant." },
+          {
+              role: "user",
+              content: prompt,
+          },
+      ],
+      store: true,
+  });
+  return {
+    text: completion.choices[0].message
+  }
+
+  } catch(error) {
+    console.log('Error calling OpenAI API:', error);
+    return NextResponse.json(
+      {error: 'OpenAI error: '},
+      {status: 501}
+    );
+  }
+}
