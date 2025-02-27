@@ -2,6 +2,10 @@ import axios from "axios";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
+
+
+
+
 export async function callGemini(prompt: string, model: string) {
     try{
     const response = await axios.post(
@@ -69,6 +73,31 @@ export async function callDeepSeek(prompt: string, model: string) {
   {role: "user", content: prompt}],
   model: "deepseek/deepseek-r1:free",
   });
+
+  console.log(completion.choices[0].message.content);
+  return {
+  text: completion.choices[0].message.content
+    }
+}
+
+
+
+// import { LlamaAPI } from 'llama-api';
+
+
+
+export async function callLlamaAPI(prompt: string, model: string) {
+  const openai = new OpenAI({
+    baseURL: 'https://api.llama-api.com',
+    apiKey: process.env.LLAMA_API_KEY,
+  });
+  console.log(model)
+  const completion = await openai.chat.completions.create({
+  messages: [
+  {role: "user", content: prompt}],
+  model: "llama3.1-70b",
+  });
+
 
   console.log(completion.choices[0].message.content);
   return {

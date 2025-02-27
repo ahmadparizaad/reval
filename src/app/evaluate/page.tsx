@@ -25,7 +25,7 @@ type Response = {
     raw: object; // Adjust the type as necessary based on the actual structure of raw data
     text: string;
   };
-  deepseekResponse: {
+  llamaResponse: {
     raw: object; // Adjust the type as necessary based on the actual structure of raw data
     text: string;
   };
@@ -50,6 +50,7 @@ export default function EvaluatePage() {
     setIsEvaluating(true);
     try {
       console.log(selectedModels);
+      console.log("Selected models",selectedModels);
       const res = await axios.post('/api/evaluate', {
         prompt,
         models: selectedModels,
@@ -65,7 +66,7 @@ export default function EvaluatePage() {
           prompt,
           geminiResponse: data.geminiResponse,
           openaiResponse: data.openaiResponse,
-          deepseekResponse: data.deepseekResponse,
+          llamaResponse: data.llamaResponse,
         },
       ]);
       console.log('geminiResponse: ', data.geminiResponse);
@@ -149,8 +150,8 @@ export default function EvaluatePage() {
             </Card>
 
             <Card className="p-6 w-full">
-              {response.deepseekResponse && (
-                <MarkdownRenderer content={response.deepseekResponse.text} />
+              {response.llamaResponse && (
+                <MarkdownRenderer content={response.llamaResponse.text} />
 
               )}
 
