@@ -16,6 +16,7 @@ import axios from 'axios';
 import React from 'react';
 
 type Response = {
+  prompt: string;
   geminiResponse: {
     raw: object; // Adjust the type as necessary based on the actual structure of raw data
     text: string;
@@ -47,8 +48,8 @@ export default function EvaluatePage() {
     }
 
     setIsEvaluating(true);
-    setPrompt('');
     try {
+      console.log(selectedModels);
       const res = await axios.post('/api/evaluate', {
         prompt,
         models: selectedModels,
@@ -61,6 +62,7 @@ export default function EvaluatePage() {
       setPreviousResponses((prev) => [
         ...prev,
         {
+          prompt,
           geminiResponse: data.geminiResponse,
           openaiResponse: data.openaiResponse,
           deepseekResponse: data.deepseekResponse,
@@ -69,6 +71,7 @@ export default function EvaluatePage() {
       console.log('geminiResponse: ', data.geminiResponse);
       console.log('openaiResponse: ', data.openaiResponse);
       console.log('deepsseekResponse: ', data.deepseekResponse);
+      setPrompt('');
 
       toast({
         title: 'Evaluation Complete',
@@ -109,7 +112,7 @@ export default function EvaluatePage() {
         )} */}
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      {/* <div className="grid grid-cols-3 gap-6">
           <h3 className="text-lg font-semibold flex items-center mt-4">
             <img src="/openai.svg" className="w-8 h-8 mr-1" />
             OpenAI
@@ -125,11 +128,19 @@ export default function EvaluatePage() {
             Gemini
           </h3>
 
-        </div>
+        </div> */}
 
-        <div className="grid grid-cols-3 gap-6 w-full">
+        <div className="w-full mb-16 px-5">
           {previousResponses.map((response, index) => (
             <React.Fragment key={index}>
+            <div className="flex justify-end">
+              <Card className="px-5 my-4 mt-4 py-1 w-fit rounded-full">
+                {response.openaiResponse && (
+                  <MarkdownRenderer content={response.prompt} />
+                )}
+              </Card>
+            </div>
+            <div className="grid grid-cols-3 gap-6 w-full">
             <Card className="p-6 w-full">
               {response.geminiResponse && (
                 <MarkdownRenderer content={response.geminiResponse.text} />
@@ -150,6 +161,7 @@ export default function EvaluatePage() {
             <Markdown>{response.geminiResponse.text}</Markdown>
             )}
             </Card>
+            </div>
             </React.Fragment>
           ))}
         </div>

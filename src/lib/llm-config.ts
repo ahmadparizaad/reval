@@ -59,7 +59,7 @@ export async function callOpenAI(prompt:string, model:string){
 
 const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: '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'
+  apiKey: process.env.OPENROUTER_API_KEY,
 });
 
 export async function callDeepSeek(prompt: string, model: string) {
@@ -75,3 +75,4 @@ export async function callDeepSeek(prompt: string, model: string) {
   text: completion.choices[0].message.content
     }
 }
+
