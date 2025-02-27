@@ -56,3 +56,22 @@ export async function callOpenAI(prompt:string, model:string){
     );
   }
 }
+
+const openai = new OpenAI({
+  baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: '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'
+});
+
+export async function callDeepSeek(prompt: string, model: string) {
+  console.log(model)
+  const completion = await openai.chat.completions.create({
+  messages: [
+  {role: "user", content: prompt}],
+  model: "deepseek/deepseek-r1:free",
+  });
+
+  console.log(completion.choices[0].message.content);
+  return {
+  text: completion.choices[0].message.content
+    }
+}

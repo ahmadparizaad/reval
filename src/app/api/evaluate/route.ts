@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { callGemini, callOpenAI } from "@/lib/llm-config";
+import { callDeepSeek, callGemini, callOpenAI } from "@/lib/llm-config";
 
 export async function POST(request: NextRequest){
   try{
@@ -12,14 +12,14 @@ export async function POST(request: NextRequest){
     );
   }
 
-  // const responses = await callGemini(prompt, models[0]);
+  const openaiResponse = await callOpenAI(prompt, models[0]);
+  const deepseekResponse = await callDeepSeek(prompt, models[1])
+  const geminiResponse = await callGemini(prompt, models[2]);
   console.log(models)
-  const responses = await callOpenAI(prompt, models[1]);
-  
   
   // const responses = await generateLLMResponses(prompt, models);
 
-  return NextResponse.json({ responses });
+  return NextResponse.json({ geminiResponse, openaiResponse, deepseekResponse });
 }
  catch(error) {
   console.log('Evaluation error:', error);
