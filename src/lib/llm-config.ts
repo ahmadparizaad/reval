@@ -84,24 +84,56 @@ export async function callDeepSeek(prompt: string, model: string) {
 
 // import { LlamaAPI } from 'llama-api';
 
+// export async function callLlamaAPI(prompt: string, model: string) {
+//   try {
+//   const openai = new OpenAI({
+//     baseURL: 'https://openrouter.ai/api/v1',
+//     apiKey: process.env.LLAMA_API_KEY,
+//   });
+//   console.log(model)
+//   const completion = await openai.chat.completions.create({
+//   messages: [
+//   {role: "user", content: prompt}],
+//   model: "llama3.1-8b",
+//   });
 
+//   console.log(completion.choices[0].message.content);
+//   return {
+//   text: completion.choices[0].message.content
+//     }
+// } catch(error) {
+//   console.log('Error calling Llama API:', error);
+//   return NextResponse.json(
+//     {error: 'Llama error: '},
+//     {status: 501}
+//   );
+// }
+// }
 
 export async function callLlamaAPI(prompt: string, model: string) {
-  const openai = new OpenAI({
-    baseURL: 'https://api.llama-api.com',
-    apiKey: process.env.LLAMA_API_KEY,
-  });
-  console.log(model)
-  const completion = await openai.chat.completions.create({
-  messages: [
-  {role: "user", content: prompt}],
-  model: "llama3.1-70b",
-  });
+  try {
+    const response = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model,
+        messages: [{ role: "user", content: prompt }],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_LLAMA_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": process.env.SITE_URL || "", // Optional
+          "X-Title": process.env.SITE_NAME || "", // Optional
+        },
+      }
+    );
 
-
-  console.log(completion.choices[0].message.content);
-  return {
-  text: completion.choices[0].message.content
-    }
+    return {
+      text: response.data.choices?.[0]?.message?.content || "",
+      raw: response.data,
+    };
+  } catch (error) {
+    console.log("Error calling Llama API:", error);
+    return NextResponse.json({ error: "Llama error" }, { status: 501 });
+  }
 }
-

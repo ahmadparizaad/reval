@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 
 const availableModels = [
   { id: "gpt-4o-mini", name: "GPT-4" },
-  { id: "llama3.1-405b", name: "LLAMA" },
+  { id: "meta-llama/llama-3.3-70b-instruct:free", name: "LLAMA" },
   { id: "gemini-1.5-flash", name: "Gemini-1.5-flash" },
 ];
 

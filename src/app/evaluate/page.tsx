@@ -113,29 +113,29 @@ export default function EvaluatePage() {
         )} */}
       </div>
 
-      {/* <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-6">
           <h3 className="text-lg font-semibold flex items-center mt-4">
             <img src="/openai.svg" className="w-8 h-8 mr-1" />
             OpenAI
           </h3>
 
           <h3 className="text-lg font-semibold flex items-center mt-4">
-            <img src="/deepseek.svg" className="w-8 h-8 mr-1" />
-            DeepSeek
+            <img src="/llama.svg" className="w-6 h-6 mr-1" />
+            Llama
           </h3>
 
           <h3 className="text-lg font-semibold flex items-center">
-          <img src="/gemini.svg" className="w-8 h-8 mr-1" />
+          <img src="/gemini.svg" className="w-6 h-6 mr-1" />
             Gemini
           </h3>
 
-        </div> */}
+        </div>
 
         <div className="w-full mb-16 px-5">
           {previousResponses.map((response, index) => (
             <React.Fragment key={index}>
-            <div className="flex justify-end">
-              <Card className="px-5 my-4 mt-4 py-1 w-fit rounded-full">
+            <div className="flex justify-start ml-3 mt-5">
+              <Card className="px-5 my-4 py-1 w-fit rounded-full bg-gray-200">
                 {response.openaiResponse && (
                   <MarkdownRenderer content={response.prompt} />
                 )}
