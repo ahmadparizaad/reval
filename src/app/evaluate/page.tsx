@@ -137,7 +137,12 @@ export default function EvaluatePage() {
             <div className="flex justify-start ml-3 mt-5">
               <Card className="px-5 my-4 py-1 w-fit rounded-full bg-gray-200">
                 {response.openaiResponse && (
+                  <>
                   <MarkdownRenderer content={response.prompt} />
+                  <div>
+                    Score :
+                  </div>
+                  </>
                 )}
               </Card>
             </div>

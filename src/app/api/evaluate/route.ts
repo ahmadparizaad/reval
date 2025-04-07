@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {  callGemini, callOpenAI, callLlamaAPI } from "@/lib/llm-config";
+import axios from "axios";
 
 export async function POST(request: NextRequest){
   try{
@@ -19,6 +20,12 @@ export async function POST(request: NextRequest){
 
   console.log(models)
   
+  const scores = axios.post('http://localhost:5000/api/evaluate', {
+    prompt: prompt,
+    models: models
+  })
+
+  console.log('Scores: ', scores)
   // const responses = await generateLLMResponses(prompt, models);
 
   return NextResponse.json({ geminiResponse, openaiResponse, llamaResponse });
