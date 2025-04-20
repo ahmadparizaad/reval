@@ -9,25 +9,37 @@ import { ModelSelector } from '@/components/model-selector';
 // import { EvaluationComparison } from '@/components/evaluation-comparison';
 // import { ExportButton } from '@/components/export-button';
 import { ArrowUp, Loader2 } from 'lucide-react';
-import Markdown from 'react-markdown';
 import MarkdownRenderer from '@/components/markdown';
 import { toast } from '@/hooks/use-toast';
 import axios from 'axios';
 import React from 'react';
 
+type Evaluation = {
+  coherence: number;
+  logical_consistency: number;
+  math_validity: number;
+  relevance: number;
+  final_score: number;
+};
+
 type Response = {
   prompt: string;
   geminiResponse: {
-    raw: object; // Adjust the type as necessary based on the actual structure of raw data
+    raw: object;
     text: string;
   };
   openaiResponse: {
-    raw: object; // Adjust the type as necessary based on the actual structure of raw data
+    raw: object;
     text: string;
   };
   llamaResponse: {
-    raw: object; // Adjust the type as necessary based on the actual structure of raw data
+    raw: object;
     text: string;
+  };
+  evaluation: {
+    ChatGPT: Evaluation;
+    Gemini: Evaluation;
+    Llama: Evaluation;
   };
 };
 
@@ -67,11 +79,13 @@ export default function EvaluatePage() {
           geminiResponse: data.geminiResponse,
           openaiResponse: data.openaiResponse,
           llamaResponse: data.llamaResponse,
+          evaluation: data.evaluation,
         },
       ]);
       console.log('geminiResponse: ', data.geminiResponse);
       console.log('openaiResponse: ', data.openaiResponse);
-      console.log('deepsseekResponse: ', data.deepseekResponse);
+      console.log('llamaResponse: ', data.llamaResponse);
+      console.log('evaluation: ', data.evaluation);
       setPrompt('');
 
       toast({
@@ -139,34 +153,58 @@ export default function EvaluatePage() {
                 {response.openaiResponse && (
                   <>
                   <MarkdownRenderer content={response.prompt} />
-                  <div>
-                    Score :
-                  </div>
                   </>
                 )}
               </Card>
             </div>
             <div className="grid grid-cols-3 gap-6 w-full">
             <Card className="p-6 w-full">
-              {response.geminiResponse && (
-                <MarkdownRenderer content={response.geminiResponse.text} />
+  {response.geminiResponse && (
+    <>
+      <MarkdownRenderer content={response.geminiResponse.text} />
+      <br />
+      <div className={`text-sm mt-2 ${response.evaluation.Gemini.final_score > 0.4 ? 'text-green-600' : 'text-red-500'}`}>
+        <strong>Score:</strong> {response.evaluation.Gemini.final_score.toFixed(2)}<br />
+        <strong>Coherence:</strong> {response.evaluation.Gemini.coherence}<br />
+        <strong>Logic:</strong> {response.evaluation.Gemini.logical_consistency}<br />
+        <strong>Math:</strong> {response.evaluation.Gemini.math_validity}<br />
+        <strong>Relevance:</strong> {response.evaluation.Gemini.relevance}
+      </div>
+    </>
+  )}
+</Card>
 
-              )}              
-            </Card>
+<Card className="p-6 w-full">
+  {response.llamaResponse && (
+    <>
+      <MarkdownRenderer content={response.llamaResponse.text} />
+      <br />
+      <div className={`text-sm mt-2 ${response.evaluation.Llama.final_score > 0.4 ? 'text-green-600' : 'text-red-500'}`}>
+        <strong>Score:</strong> {response.evaluation.Llama.final_score.toFixed(2)}<br />
+        <strong>Coherence:</strong> {response.evaluation.Llama.coherence}<br />
+        <strong>Logic:</strong> {response.evaluation.Llama.logical_consistency}<br />
+        <strong>Math:</strong> {response.evaluation.Llama.math_validity}<br />
+        <strong>Relevance:</strong> {response.evaluation.Llama.relevance}
+      </div>
+    </>
+  )}
+</Card>
 
             <Card className="p-6 w-full">
-              {response.llamaResponse && (
-                <MarkdownRenderer content={response.llamaResponse.text} />
-
-              )}
-
-            </Card>
-
-            <Card className="p-6 w-full">
-            {response.geminiResponse && (              
-            <Markdown>{response.geminiResponse.text}</Markdown>
-            )}
-            </Card>
+  {response.geminiResponse && (
+    <>
+      <MarkdownRenderer content={response.geminiResponse.text} />
+      <br />
+      <div className={`text-sm mt-2 ${response.evaluation.Gemini.final_score > 0.4 ? 'text-green-600' : 'text-red-500'}`}>
+        <strong>Score:</strong> {response.evaluation.Gemini.final_score.toFixed(2)}<br />
+        <strong>Coherence:</strong> {response.evaluation.Gemini.coherence}<br />
+        <strong>Logic:</strong> {response.evaluation.Gemini.logical_consistency}<br />
+        <strong>Math:</strong> {response.evaluation.Gemini.math_validity}<br />
+        <strong>Relevance:</strong> {response.evaluation.Gemini.relevance}
+      </div>
+    </>
+  )}
+</Card>
             </div>
             </React.Fragment>
           ))}
