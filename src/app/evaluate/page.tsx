@@ -163,12 +163,12 @@ export default function EvaluatePage() {
     <>
       <MarkdownRenderer content={response.geminiResponse.text} />
       <br />
-      <div className={`text-sm mt-2 ${response.evaluation.Gemini.final_score > 0.4 ? 'text-green-600' : 'text-red-500'}`}>
-        <strong>Score:</strong> {response.evaluation.Gemini.final_score.toFixed(2)}<br />
-        <strong>Coherence:</strong> {response.evaluation.Gemini.coherence}<br />
-        <strong>Logic:</strong> {response.evaluation.Gemini.logical_consistency}<br />
-        <strong>Math:</strong> {response.evaluation.Gemini.math_validity}<br />
-        <strong>Relevance:</strong> {response.evaluation.Gemini.relevance}
+      <div className={`text-sm mt-2 ${response.evaluation?.Gemini.final_score > 0.4 ? 'text-green-600' : 'text-red-500'}`}>
+        <strong>Score:</strong> {response.evaluation?.Gemini.final_score.toFixed(2)}<br />
+        <strong>Coherence:</strong> {response.evaluation?.Gemini.coherence}<br />
+        <strong>Logic:</strong> {response.evaluation?.Gemini.logical_consistency}<br />
+        <strong>Math:</strong> {response.evaluation?.Gemini.math_validity}<br />
+        <strong>Relevance:</strong> {response.evaluation?.Gemini.relevance}
       </div>
     </>
   )}
@@ -179,12 +179,12 @@ export default function EvaluatePage() {
     <>
       <MarkdownRenderer content={response.llamaResponse.text} />
       <br />
-      <div className={`text-sm mt-2 ${response.evaluation.Llama.final_score > 0.4 ? 'text-green-600' : 'text-red-500'}`}>
-        <strong>Score:</strong> {response.evaluation.Llama.final_score.toFixed(2)}<br />
-        <strong>Coherence:</strong> {response.evaluation.Llama.coherence}<br />
-        <strong>Logic:</strong> {response.evaluation.Llama.logical_consistency}<br />
-        <strong>Math:</strong> {response.evaluation.Llama.math_validity}<br />
-        <strong>Relevance:</strong> {response.evaluation.Llama.relevance}
+      <div className={`text-sm mt-2 ${response.evaluation?.Llama.final_score > 0.4 ? 'text-green-600' : 'text-red-500'}`}>
+        <strong>Score:</strong> {response.evaluation?.Llama.final_score.toFixed(2)}<br />
+        <strong>Coherence:</strong> {response.evaluation?.Llama.coherence}<br />
+        <strong>Logic:</strong> {response.evaluation?.Llama.logical_consistency}<br />
+        <strong>Math:</strong> {response.evaluation?.Llama.math_validity}<br />
+        <strong>Relevance:</strong> {response.evaluation?.Llama.relevance}
       </div>
     </>
   )}
@@ -195,12 +195,12 @@ export default function EvaluatePage() {
     <>
       <MarkdownRenderer content={response.geminiResponse.text} />
       <br />
-      <div className={`text-sm mt-2 ${response.evaluation.Gemini.final_score > 0.4 ? 'text-green-600' : 'text-red-500'}`}>
-        <strong>Score:</strong> {response.evaluation.Gemini.final_score.toFixed(2)}<br />
-        <strong>Coherence:</strong> {response.evaluation.Gemini.coherence}<br />
-        <strong>Logic:</strong> {response.evaluation.Gemini.logical_consistency}<br />
-        <strong>Math:</strong> {response.evaluation.Gemini.math_validity}<br />
-        <strong>Relevance:</strong> {response.evaluation.Gemini.relevance}
+      <div className={`text-sm mt-2 ${response.evaluation?.Gemini.final_score > 0.4 ? 'text-green-600' : 'text-red-500'}`}>
+        <strong>Score:</strong> {response.evaluation?.Gemini.final_score.toFixed(2)}<br />
+        <strong>Coherence:</strong> {response.evaluation?.Gemini.coherence}<br />
+        <strong>Logic:</strong> {response.evaluation?.Gemini.logical_consistency}<br />
+        <strong>Math:</strong> {response.evaluation?.Gemini.math_validity}<br />
+        <strong>Relevance:</strong> {response.evaluation?.Gemini.relevance}
       </div>
     </>
   )}
