@@ -8,7 +8,7 @@ import { ModelSelector } from '@/components/model-selector';
 // import { ResponseCard } from '@/components/response-card';
 // import { EvaluationComparison } from '@/components/evaluation-comparison';
 // import { ExportButton } from '@/components/export-button';
-import { ArrowUp, Loader2 } from 'lucide-react';
+import { ArrowUp, Loader2, Star } from 'lucide-react';
 import MarkdownRenderer from '@/components/markdown';
 import { toast } from '@/hooks/use-toast';
 import axios from 'axios';
@@ -16,10 +16,9 @@ import React from 'react';
 
 type Evaluation = {
   coherence: number;
-  logical_consistency: number;
-  math_validity: number;
-  relevance: number;
-  final_score: number;
+  token_overlap: number;
+  length_ratio: number;
+  overall_score: number;
 };
 
 type Response = {
@@ -41,6 +40,38 @@ type Response = {
     Gemini: Evaluation;
     Llama: Evaluation;
   };
+  userRatings?: {
+    ChatGPT: number | null;
+    Gemini: number | null;
+    Llama: number | null;
+  };
+};
+
+// Star Rating component
+const StarRating = ({ 
+  rating, 
+  setRating,
+  disabled = false
+}: { 
+  rating: number | null; 
+  setRating: (rating: number) => void;
+  disabled?: boolean;
+}) => {
+  return (
+    <div className="flex mt-3">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          className={`h-5 w-5 cursor-pointer ${
+            (rating || 0) >= star 
+              ? 'text-yellow-500 fill-yellow-500' 
+              : 'text-gray-300'
+          }`}
+          onClick={() => !disabled && setRating(star)}
+        />
+      ))}
+    </div>
+  );
 };
 
 export default function EvaluatePage() {
@@ -48,12 +79,115 @@ export default function EvaluatePage() {
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [previousResponses, setPreviousResponses] = useState<Response[]>([]);
+  const [isSendingFeedback, setIsSendingFeedback] = useState(false);
+
+  const handleRating = (index: number, model: 'ChatGPT' | 'Gemini' | 'Llama', rating: number) => {
+    setPreviousResponses(prev => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        userRatings: {
+          ChatGPT: updated[index].userRatings?.ChatGPT ?? null,
+          Gemini: updated[index].userRatings?.Gemini ?? null,
+          Llama: updated[index].userRatings?.Llama ?? null,
+          [model]: rating
+        }
+      };
+      return updated;
+    });
+  };
+  
+  const isAllRated = (response: Response) => {
+    return (
+      response.userRatings?.ChatGPT !== null && 
+      response.userRatings?.Gemini !== null && 
+      response.userRatings?.Llama !== null
+    );
+  };
+  
+  const hasPendingFeedback = () => {
+    return previousResponses.some(
+      response => !isAllRated(response)
+    );
+  };
+
+  const submitFeedback = async (index: number) => {
+    const response = previousResponses[index];
+    
+    if (!isAllRated(response)) {
+      toast({
+        title: 'Missing Ratings',
+        description: 'Please rate all three model responses before submitting.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setIsSendingFeedback(true);
+    try {
+      // Create safe scores object with fallback values
+      const scores = {
+        ChatGPT: {
+          coherence: response.evaluation?.ChatGPT?.coherence ?? 0.7,
+          token_overlap: response.evaluation?.ChatGPT?.token_overlap ?? 0.6,
+          length_ratio: response.evaluation?.ChatGPT?.length_ratio ?? 0.7,
+          overall_score: response.evaluation?.ChatGPT?.overall_score ?? 0.7
+        },
+        Gemini: {
+          coherence: response.evaluation?.Gemini?.coherence ?? 0.7,
+          token_overlap: response.evaluation?.Gemini?.token_overlap ?? 0.6,
+          length_ratio: response.evaluation?.Gemini?.length_ratio ?? 0.7,
+          overall_score: response.evaluation?.Gemini?.overall_score ?? 0.7
+        },
+        Llama: {
+          coherence: response.evaluation?.Llama?.coherence ?? 0.7, 
+          token_overlap: response.evaluation?.Llama?.token_overlap ?? 0.6,
+          length_ratio: response.evaluation?.Llama?.length_ratio ?? 0.7,
+          overall_score: response.evaluation?.Llama?.overall_score ?? 0.7
+        }
+      };
+      
+      await axios.post('http://localhost:5000/api/feedback', {
+        feedback: {
+          ChatGPT: response.userRatings?.ChatGPT,
+          Gemini: response.userRatings?.Gemini,
+          Llama: response.userRatings?.Llama
+        },
+        scores
+      });
+      
+      toast({
+        title: 'Feedback Submitted',
+        description: 'Thank you for your feedback!',
+      });
+      
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to submit feedback. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSendingFeedback(false);
+    }
+  };
 
   const handleEvaluate = async () => {
     if (!prompt || selectedModels.length === 0) {
       toast({
         title: 'Validation Error',
         description: 'Please enter a prompt and select at least one model.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Check for pending feedback
+    if (hasPendingFeedback()) {
+      toast({
+        title: 'Pending Feedback',
+        description: 'Please provide ratings for all responses before submitting a new prompt.',
         variant: 'destructive',
       });
       return;
@@ -80,6 +214,11 @@ export default function EvaluatePage() {
           openaiResponse: data.openaiResponse,
           llamaResponse: data.llamaResponse,
           evaluation: data.evaluation,
+          userRatings: {
+            ChatGPT: null,
+            Gemini: null,
+            Llama: null
+          }
         },
       ]);
       console.log('geminiResponse: ', data.geminiResponse);
@@ -158,53 +297,81 @@ export default function EvaluatePage() {
               </Card>
             </div>
             <div className="grid grid-cols-3 gap-6 w-full">
-            <Card className="p-6 w-full">
-  {response.geminiResponse && (
-    <>
-      <MarkdownRenderer content={response.geminiResponse.text} />
-      <br />
-      <div className={`text-sm mt-2 ${response.evaluation?.Gemini.final_score > 0.4 ? 'text-green-600' : 'text-red-500'}`}>
-        <strong>Score:</strong> {response.evaluation?.Gemini.final_score.toFixed(2)}<br />
-        <strong>Coherence:</strong> {response.evaluation?.Gemini.coherence}<br />
-        <strong>Logic:</strong> {response.evaluation?.Gemini.logical_consistency}<br />
-        <strong>Math:</strong> {response.evaluation?.Gemini.math_validity}<br />
-        <strong>Relevance:</strong> {response.evaluation?.Gemini.relevance}
-      </div>
-    </>
-  )}
-</Card>
+              <Card className="p-6 w-full">
+                {response.openaiResponse && (
+                  <>
+                    <MarkdownRenderer content={response.openaiResponse.text} />
+                    <br />
+                    <div className={`text-sm mt-2 ${response.evaluation?.ChatGPT.overall_score > 0.4 ? 'text-green-600' : 'text-red-500'}`}>
+                      <strong>Score:</strong> {response.evaluation?.ChatGPT.overall_score.toFixed(2)}<br />
+                      <strong>Coherence:</strong> {response.evaluation?.ChatGPT.coherence.toFixed(2)}<br />
+                      <strong>Token Overlap:</strong> {response.evaluation?.ChatGPT.token_overlap.toFixed(2)}<br />
+                      <strong>Length Ratio:</strong> {response.evaluation?.ChatGPT.length_ratio.toFixed(2)}
+                    </div>
+                    <div className="mt-3">
+                      <p className="text-sm font-medium mb-1">Your Rating:</p>
+                      <StarRating 
+                        rating={response.userRatings?.ChatGPT || 0}
+                        setRating={(rating) => handleRating(index, 'ChatGPT', rating)}
+                      />
+                    </div>
+                  </>
+                )}
+              </Card>
 
-<Card className="p-6 w-full">
-  {response.llamaResponse && (
-    <>
-      <MarkdownRenderer content={response.llamaResponse.text} />
-      <br />
-      <div className={`text-sm mt-2 ${response.evaluation?.Llama.final_score > 0.4 ? 'text-green-600' : 'text-red-500'}`}>
-        <strong>Score:</strong> {response.evaluation?.Llama.final_score.toFixed(2)}<br />
-        <strong>Coherence:</strong> {response.evaluation?.Llama.coherence}<br />
-        <strong>Logic:</strong> {response.evaluation?.Llama.logical_consistency}<br />
-        <strong>Math:</strong> {response.evaluation?.Llama.math_validity}<br />
-        <strong>Relevance:</strong> {response.evaluation?.Llama.relevance}
-      </div>
-    </>
-  )}
-</Card>
+              <Card className="p-6 w-full">
+                {response.llamaResponse && (
+                  <>
+                    <MarkdownRenderer content={response.llamaResponse.text} />
+                    <br />
+                    <div className={`text-sm mt-2 ${response.evaluation?.Llama.overall_score > 0.4 ? 'text-green-600' : 'text-red-500'}`}>
+                      <strong>Score:</strong> {response.evaluation?.Llama.overall_score.toFixed(2)}<br />
+                      <strong>Coherence:</strong> {response.evaluation?.Llama.coherence.toFixed(2)}<br />
+                      <strong>Token Overlap:</strong> {response.evaluation?.Llama.token_overlap.toFixed(2)}<br />
+                      <strong>Length Ratio:</strong> {response.evaluation?.Llama.length_ratio.toFixed(2)}
+                    </div>
+                    <div className="mt-3">
+                      <p className="text-sm font-medium mb-1">Your Rating:</p>
+                      <StarRating 
+                        rating={response.userRatings?.Llama || 0}
+                        setRating={(rating) => handleRating(index, 'Llama', rating)}
+                      />
+                    </div>
+                  </>
+                )}
+              </Card>
 
-            <Card className="p-6 w-full">
-  {response.geminiResponse && (
-    <>
-      <MarkdownRenderer content={response.geminiResponse.text} />
-      <br />
-      <div className={`text-sm mt-2 ${response.evaluation?.Gemini.final_score > 0.4 ? 'text-green-600' : 'text-red-500'}`}>
-        <strong>Score:</strong> {response.evaluation?.Gemini.final_score.toFixed(2)}<br />
-        <strong>Coherence:</strong> {response.evaluation?.Gemini.coherence}<br />
-        <strong>Logic:</strong> {response.evaluation?.Gemini.logical_consistency}<br />
-        <strong>Math:</strong> {response.evaluation?.Gemini.math_validity}<br />
-        <strong>Relevance:</strong> {response.evaluation?.Gemini.relevance}
-      </div>
-    </>
-  )}
-</Card>
+              <Card className="p-6 w-full">
+                {response.geminiResponse && (
+                  <>
+                    <MarkdownRenderer content={response.geminiResponse.text} />
+                    <br />
+                    <div className={`text-sm mt-2 ${response.evaluation?.Gemini.overall_score > 0.4 ? 'text-green-600' : 'text-red-500'}`}>
+                      <strong>Score:</strong> {response.evaluation?.Gemini.overall_score.toFixed(2)}<br />
+                      <strong>Coherence:</strong> {response.evaluation?.Gemini.coherence.toFixed(2)}<br />
+                      <strong>Token Overlap:</strong> {response.evaluation?.Gemini.token_overlap.toFixed(2)}<br />
+                      <strong>Length Ratio:</strong> {response.evaluation?.Gemini.length_ratio.toFixed(2)}
+                    </div>
+                    <div className="mt-3">
+                      <p className="text-sm font-medium mb-1">Your Rating:</p>
+                      <StarRating 
+                        rating={response.userRatings?.Gemini || 0}
+                        setRating={(rating) => handleRating(index, 'Gemini', rating)}
+                      />
+                    </div>
+                  </>
+                )}
+              </Card>
+            </div>
+            
+            <div className="flex justify-center mt-4 mb-8">
+              <Button
+                onClick={() => submitFeedback(index)}
+                disabled={!isAllRated(response) || isSendingFeedback}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {isSendingFeedback ? 'Submitting...' : 'Submit Feedback'}
+              </Button>
             </div>
             </React.Fragment>
           ))}
@@ -224,9 +391,10 @@ export default function EvaluatePage() {
       />
       <Button
         onClick={handleEvaluate}
-        disabled={!prompt || selectedModels.length === 0 || isEvaluating}
+        disabled={!prompt || selectedModels.length === 0 || isEvaluating || hasPendingFeedback()}
         className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full p-0 bg-gray-800 hover:bg-gray-600"
         variant="ghost"
+        title={hasPendingFeedback() ? "Please rate all responses before submitting a new prompt" : ""}
       >
         {isEvaluating ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-5 w-5 text-white" />}
       </Button>
