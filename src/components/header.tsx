@@ -14,7 +14,7 @@ import {
 import { Button } from "./ui/button";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-
+import Image from "next/image";
 export default function Header() {
   const { user } = useUser();
   const router = useRouter();
@@ -36,7 +36,7 @@ export default function Header() {
       <div className="container flex h-14 items-center">
         <div className="flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Brain className="h-6 w-6" />
+            <Image alt="logo" src='/logo.png' width={30} height={30}/>
             <span className="font-bold">Reval</span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
