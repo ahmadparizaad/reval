@@ -40,11 +40,12 @@ type Response = {
     Gemini: Evaluation;
     Llama: Evaluation;
   };
-  userRatings?: {
+  userRatings: {
     ChatGPT: number | null;
     Gemini: number | null;
     Llama: number | null;
   };
+  feedbackSubmitted: boolean;
 };
 
 // Star Rating component
@@ -161,6 +162,16 @@ export default function EvaluatePage() {
         description: 'Thank you for your feedback!',
       });
       
+      // Mark feedback as submitted
+      setPreviousResponses(prev => {
+        const updated = [...prev];
+        updated[index] = {
+          ...updated[index],
+          feedbackSubmitted: true
+        };
+        return updated;
+      });
+      
     } catch (error) {
       console.error('Failed to submit feedback:', error);
       toast({
@@ -218,7 +229,8 @@ export default function EvaluatePage() {
             ChatGPT: null,
             Gemini: null,
             Llama: null
-          }
+          },
+          feedbackSubmitted: false
         },
       ]);
       console.log('geminiResponse: ', data.geminiResponse);
