@@ -28,9 +28,9 @@ export async function POST(request: NextRequest){
       const response = await axios.post('http://localhost:5000/api/evaluate', {
         question: prompt,
         responses: {
-          ChatGPT: String(openaiResponse),
-          Gemini: String(geminiResponse),
-          Llama: String(llamaResponse),
+          ChatGPT: JSON.stringify(openaiResponse),
+          Gemini: JSON.stringify(geminiResponse),
+          Llama: JSON.stringify(llamaResponse),
         },
       });
       evaluation = response.data.evaluation;
