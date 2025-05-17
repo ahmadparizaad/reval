@@ -6,6 +6,7 @@ import {
   ClerkProvider,
 } from '@clerk/nextjs'
 import "./globals.css";
+import "./layout.css";
 import Header from "@/components/header";
 const geistSans = Geist({
   variable: "--font-geist-sans",

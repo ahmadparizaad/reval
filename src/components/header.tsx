@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Brain } from "lucide-react";
+// import { Brain } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
 import {
   SignInButton,
@@ -39,12 +39,17 @@ export default function Header() {
             <Image alt="logo" src='/logo.png' width={30} height={30}/>
             <span className="font-bold">Reval</span>
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
-            <button 
+          <nav className="flex items-center space-x-6 text-sm font-medium">            <button 
               onClick={() => handleProtectedNavigation('/evaluate')}
               className="transition-colors hover:text-foreground/80"
             >
               Evaluate
+            </button>
+            <button 
+              onClick={() => handleProtectedNavigation('/leaderboard')}
+              className="transition-colors hover:text-foreground/80"
+            >
+              Leaderboard
             </button>
             <button 
               onClick={() => handleProtectedNavigation('/history')}
@@ -52,9 +57,6 @@ export default function Header() {
             >
               History
             </button>
-            {/* <Link href="/docs" className="transition-colors hover:text-foreground/80">
-              Docs
-            </Link> */}
           </nav>
         </div>
         <div className="flex flex-1 items-center justify-end">

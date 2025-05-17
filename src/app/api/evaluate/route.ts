@@ -22,8 +22,7 @@ export async function POST(request: NextRequest){
   console.log(models)
   console.log('openaiResponse: ', typeof(openaiResponse));
   console.log('llamaResponse: ', typeof(llamaResponse));
-  console.log('geminiResponse: ', typeof(geminiResponse));
-  
+  console.log('geminiResponse: ', typeof(geminiResponse));    let leaderboard;
     try {
       const response = await axios.post('http://localhost:5000/api/evaluate', {
         question: prompt,
@@ -33,10 +32,14 @@ export async function POST(request: NextRequest){
           Llama: JSON.stringify(llamaResponse),
         },
       });
+      
+      // Extract both evaluation and leaderboard from response
       evaluation = response.data.evaluation;
+      leaderboard = response.data.leaderboard;
   
       console.log("Evaluation Results:", evaluation);
-
+      console.log("Leaderboard Data:", leaderboard);
+      
     } catch (error) {
       console.error('Error fetching scores:', error);
     }
@@ -44,7 +47,7 @@ export async function POST(request: NextRequest){
 
   // const responses = await generateLLMResponses(prompt, models);
 
-  return NextResponse.json({ geminiResponse, openaiResponse, llamaResponse, evaluation });
+  return NextResponse.json({ geminiResponse, openaiResponse, llamaResponse, evaluation, leaderboard });
 }
  catch(error) {
   console.log('Evaluation error:', error);

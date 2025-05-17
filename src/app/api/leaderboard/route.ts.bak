@@ -1,0 +1,52 @@
+import { NextRequest, NextReexport async function GET() {ponse } from "next/server";
+import axios from "axios";
+
+// Fallback mock data if the backend API is unavailable
+const mockLeaderboardData = {
+  ChatGPT: {
+    overall_score: 0.85,
+    coherence: 0.88,
+    token_overlap: 0.82,
+    length_ratio: 0.79,
+    user_rating: 0.90
+  },
+  Gemini: {
+    overall_score: 0.78,
+    coherence: 0.80,
+    token_overlap: 0.76,
+    length_ratio: 0.75,
+    user_rating: 0.82
+  },
+  Llama: {
+    overall_score: 0.72,
+    coherence: 0.74,
+    token_overlap: 0.70,
+    length_ratio: 0.68,
+    user_rating: 0.75
+  }
+};
+
+export async function GET(_request: NextRequest) {
+  try {
+    console.log('API route: Fetching leaderboard data from backend...');
+    // Get the leaderboard data from the backend
+    const response = await axios.get('http://localhost:5000/api/leaderboard', {
+      timeout: 5000 // Set a 5 second timeout to fail faster if backend is unavailable
+    });
+    
+    // Extract leaderboard data
+    const leaderboardData = response.data.leaderboard;
+    console.log('API route: Successfully fetched leaderboard data from backend');
+    
+    return NextResponse.json({ leaderboardData });
+  } catch (error) {
+    console.error('Error fetching leaderboard data:', error);
+    console.log('API route: Using mock leaderboard data due to backend connection issue');
+    // Return mock data instead of an error to ensure the frontend works
+    return NextResponse.json({ 
+      leaderboardData: mockLeaderboardData,
+      isMockData: true,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error connecting to backend'
+    });
+  }
+}

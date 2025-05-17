@@ -1,0 +1,19 @@
+/* Basic layout styles to fix 404 issues */
+
+/* These are common layout utilities that might be needed */
+.layout-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.layout-flex {
+  display: flex;
+}
+
+.layout-grid {
+  display: grid;
+}
+
+/* More layout utilities can be added as needed */

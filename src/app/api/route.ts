@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 
-export async function GET(request: Request) {
+// Simple health check endpoint
+export async function GET() {
     return NextResponse.json({
-        hello: 'World'
-    })
+        status: 'online',
+        message: 'Reval API is running',
+        timestamp: new Date().toISOString()
+    });
 }
