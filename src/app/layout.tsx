@@ -8,12 +8,14 @@ import {
 import "./globals.css";
 import "./layout.css";
 import Header from "@/components/header";
+import { Toaster } from '@/components/ui/toaster';
+import { ThemeProvider } from "@/components/theme-provider";
+import QueryProvider from '@/providers/QueryProvider';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
-import { Toaster } from '@/components/ui/toaster';
-import { ThemeProvider } from "@/components/theme-provider";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -43,9 +45,11 @@ export default function RootLayout({
         enableSystem
         disableTransitionOnChange
         >
+        <QueryProvider>
         <Header/>
         {children}
         <Toaster/>
+        </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

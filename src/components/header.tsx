@@ -15,9 +15,85 @@ import { Button } from "./ui/button";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useEffect, useCallback } from "react";
+import { fetchWithAuth, APIError } from '@/utils/api';
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
 export default function Header() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
+
+  const syncUser = useCallback(async (retryCount = 0) => {
+    if (!user) return;
+
+    try {
+      const response = await fetchWithAuth('/users/sync-clerk', user.id, {
+        method: 'POST',
+        body: JSON.stringify({
+          clerk_id: user.id,
+          username: user.username || user.firstName,
+          email: user.emailAddresses[0].emailAddress,
+        }),
+      });
+
+      console.log('User synced successfully:', response);
+    } catch (error) {
+      console.error('Error syncing user:', error);
+
+      if (error instanceof APIError) {
+        // Handle specific error cases
+        switch (error.code) {
+          case 'CONNECTION_ERROR':
+            if (retryCount < MAX_RETRIES) {
+              console.log(`Retrying sync (${retryCount + 1}/${MAX_RETRIES})...`);
+              setTimeout(() => syncUser(retryCount + 1), RETRY_DELAY);
+              return;
+            }
+            toast({
+              title: 'Connection Error',
+              description: 'Unable to connect to the server. Please check if the server is running.',
+              variant: 'destructive',
+            });
+            break;
+
+          case 'AUTH_REQUIRED':
+            toast({
+              title: 'Authentication Error',
+              description: 'Please sign in again',
+              variant: 'destructive',
+            });
+            break;
+
+          default:
+            if (retryCount < MAX_RETRIES) {
+              console.log(`Retrying sync (${retryCount + 1}/${MAX_RETRIES})...`);
+              setTimeout(() => syncUser(retryCount + 1), RETRY_DELAY);
+              return;
+            }
+            toast({
+              title: 'Error',
+              description: error.message || 'Failed to sync user data. Please try again later.',
+              variant: 'destructive',
+            });
+        }
+      } else {
+        toast({
+          title: 'Error',
+          description: 'An unexpected error occurred. Please try again later.',
+          variant: 'destructive',
+        });
+      }
+    }
+  }, [user]);
+
+  // Sync user with backend when signed in
+  useEffect(() => {
+    if (isLoaded && user) {
+      syncUser();
+    }
+  }, [user, isLoaded, syncUser]);
 
   const handleProtectedNavigation = (path: string) => {
     if (user) {

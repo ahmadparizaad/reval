@@ -14,6 +14,7 @@ import MarkdownRenderer from '@/components/markdown';
 import { toast } from '@/hooks/use-toast';
 import axios from 'axios';
 import React from 'react';
+import { MetricsLineChart } from '@/components/metrics-line-chart';
 
 type Evaluation = {
   coherence: number;
@@ -381,6 +382,10 @@ export default function EvaluatePage() {
                   </>
                 )}
               </Card>
+            </div>
+            {/* Add the metrics line chart here */}
+            <div className="w-full px-4">
+              <MetricsLineChart evaluations={response.evaluation} />
             </div>
               {!response.feedbackSubmitted && (
               <div className="flex justify-center mt-4 mb-8">
