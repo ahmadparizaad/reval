@@ -219,41 +219,59 @@ export default function LeaderboardPage() {  // Mock data to use as fallback
         console.log('Ranking API response:', rankingRes.data);
         console.log('🔍 DEBUG: Ranking raw data structure:', JSON.stringify(rankingRes.data, null, 2));
         
-        if (rankingRes.data.trendsData) {
+        // Update this section to handle the new response format
+        if (rankingRes.data.rankingData && rankingRes.data.trendsData) {
+          console.log('🔍 DEBUG: Ranking data received:', rankingRes.data.rankingData);
           console.log('🔍 DEBUG: Trend data received:', rankingRes.data.trendsData);
+          
+          setRankingData(rankingRes.data.rankingData);
           setTrendData(rankingRes.data.trendsData);
+          
           // Only set mock data flag if not already set
           if (rankingRes.data.isMockData && !leaderboardRes.data.isMockData) {
             setUseMockData(true);
           }
         } else {
-          console.warn('No trend data received, generating trend data');
-          // Generate trend data from the model names in leaderboard data
+          console.warn('No ranking/trend data received in expected format, generating data');
+          // Generate ranking data from the leaderboard data we just fetched
+          const generatedRanking: RankingData = {};
           const generatedTrends: TrendData = {};
-          leaderboardRes.data.leaderboardData.forEach((model: ModelScore, index: number) => {
-            // Alternate between trends for demonstration
-            generatedTrends[model.model_name] = index % 3 === 0 ? 'up' : (index % 3 === 1 ? 'down' : 'stable');
-          });
+          
+          if (leaderboardRes.data.leaderboardData) {
+            leaderboardRes.data.leaderboardData.forEach((model: ModelScore, index: number) => {
+              generatedRanking[model.model_name] = model.overall_score;
+              generatedTrends[model.model_name] = index % 3 === 0 ? 'up' : (index % 3 === 1 ? 'down' : 'stable');
+            });
+          }
+          
+          console.log('🔍 DEBUG: Generated ranking data:', generatedRanking);
           console.log('🔍 DEBUG: Generated trend data:', generatedTrends);
+          setRankingData(generatedRanking);
           setTrendData(generatedTrends);
         }
       } catch (error) {
-        console.warn('Error fetching trend data, generating mock trends', error);
+        console.warn('Error fetching ranking data, generating mock data', error);
         console.log('🔍 DEBUG: Error details:', error instanceof Error ? error.message : 'Unknown error');
-        // Generate trend data from the leaderboard data we just fetched
+        
+        // Generate ranking and trend data from the leaderboard data we just fetched
+        const generatedRanking: RankingData = {};
         const generatedTrends: TrendData = {};
+        
         // Use the leaderboard data from the response instead of the state
         if (leaderboardRes.data.leaderboardData) {
           leaderboardRes.data.leaderboardData.forEach((model: ModelScore, index: number) => {
-            // Alternate between trends for demonstration
+            generatedRanking[model.model_name] = model.overall_score;
             generatedTrends[model.model_name] = index % 3 === 0 ? 'up' : (index % 3 === 1 ? 'down' : 'stable');
           });
         } else {
           // Fallback to mock data if needed
           mockLeaderboardData.forEach((model, index) => {
+            generatedRanking[model.model_name] = model.overall_score;
             generatedTrends[model.model_name] = index % 3 === 0 ? 'up' : (index % 3 === 1 ? 'down' : 'stable');
           });
         }
+        
+        setRankingData(generatedRanking);
         setTrendData(generatedTrends);
       }
     } catch (error) {
@@ -440,7 +458,7 @@ export default function LeaderboardPage() {  // Mock data to use as fallback
           Refresh Data
         </button>
       </div>
-        {useMockData && (
+        {/* {useMockData && (
         <div className="p-4 mb-4 border border-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 dark:border-yellow-700 rounded-lg">
           <div className="flex justify-between items-center">
             <div>
@@ -471,7 +489,7 @@ export default function LeaderboardPage() {  // Mock data to use as fallback
             </button>
           </div>
         </div>
-      )}
+      )} */}
       
       {/* Rankings Section */}
       <Card className="p-6 mb-8 backdrop-blur-sm bg-white bg-opacity-80 border shadow-lg dark:bg-gray-900 dark:border-gray-800">

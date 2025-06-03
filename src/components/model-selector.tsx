@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 const availableModels = [
-  { id: "gpt-4o-mini", name: "GPT-4" },
+  { id: "openai/gpt-4.1", name: "GPT-4.1" },
   { id: "meta-llama/llama-3.3-70b-instruct:free", name: "LLAMA" },
   { id: "gemini-1.5-flash", name: "Gemini-1.5-flash" },
 ];

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-// import { Brain } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
 import {
   SignInButton,
@@ -15,9 +14,41 @@ import { Button } from "./ui/button";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+
 export default function Header() {
-  const { user } = useUser();
+  const { user} = useUser();
   const router = useRouter();
+
+  // Sync user with backend when they sign in
+  // useEffect(() => {
+  //   const syncUserWithBackend = async () => {
+  //     if (isLoaded && user) {
+  //       try {
+  //         const response = await fetch('/api/auth/sync-user', {
+  //           method: 'POST',
+  //           headers: {
+  //             'Content-Type': 'application/json',
+  //           },
+  //           body: JSON.stringify({
+  //             userId: user.id,
+  //             email: user.emailAddresses[0]?.emailAddress,
+  //             firstName: user.firstName,
+  //             lastName: user.lastName,
+  //             username: user.username,
+  //           }),
+  //         });
+
+  //         if (!response.ok) {
+  //           console.error('Failed to sync user with backend');
+  //         }
+  //       } catch (error) {
+  //         console.error('Error syncing user:', error);
+  //       }
+  //     }
+  //   };
+
+  //   syncUserWithBackend();
+  // }, [user, isLoaded]);
 
   const handleProtectedNavigation = (path: string) => {
     if (user) {
@@ -39,7 +70,8 @@ export default function Header() {
             <Image alt="logo" src='/logo.png' width={30} height={30}/>
             <span className="font-bold">Reval</span>
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">            <button 
+          <nav className="flex items-center space-x-6 text-sm font-medium">
+            <button 
               onClick={() => handleProtectedNavigation('/evaluate')}
               className="transition-colors hover:text-foreground/80"
             >

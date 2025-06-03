@@ -2,10 +2,43 @@ import axios from "axios";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
+const token = process.env.GITHUB_TOKEN;
+const endpoint = "https://models.github.ai/inference";
+const defaultAzureModel = "gpt-4o-mini";
 
+export async function callAzureOpenAI(prompt: string, model?: string) {
+  if (!token) {
+    throw new Error("GITHUB_TOKEN environment variable is not set.");
+  }
+  
+  try {
+    const openai = new OpenAI({
+      baseURL: endpoint,
+      apiKey: token,
+    });
 
+    const response = await openai.chat.completions.create({
+      messages: [
+        { role: "system", content: "You are a helpful assistant." },
+        { role: "user", content: prompt }
+      ],
+      temperature: 1.0,
+      top_p: 1.0,
+      model: model || defaultAzureModel,
+    });
 
-
+    return {
+      text: response.choices[0].message.content || "",
+      raw: response,
+    };
+  } catch (error) {
+    console.log('Error calling Azure OpenAI API:', error);
+    return {
+      text: "",
+      error: `Azure OpenAI error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    };
+  }
+}
 export async function callGemini(prompt: string, model: string) {
     try{
     const response = await axios.post(
@@ -34,32 +67,32 @@ export async function callGemini(prompt: string, model: string) {
       );
   }}
 
-export async function callOpenAI(prompt:string, model:string){
-  try{
-    const openai = new OpenAI();
-    const completion = await openai.chat.completions.create({
-      model: model,
-      messages: [
-          { role: "system", content: "You are a helpful assistant." },
-          {
-              role: "user",
-              content: prompt,
-          },
-      ],
-      store: true,
-  });
-  return {
-    text: completion.choices[0].message
-  }
+// export async function callOpenAI(prompt:string, model:string){
+//   try{
+//     const openai = new OpenAI();
+//     const completion = await openai.chat.completions.create({
+//       model: model,
+//       messages: [
+//           { role: "system", content: "You are a helpful assistant." },
+//           {
+//               role: "user",
+//               content: prompt,
+//           },
+//       ],
+//       store: true,
+//   });
+//   return {
+//     text: completion.choices[0].message
+//   }
 
-  } catch(error) {
-    console.log('Error calling OpenAI API:', error);
-    return NextResponse.json(
-      {error: 'OpenAI error: '},
-      {status: 501}
-    );
-  }
-}
+//   } catch(error) {
+//     console.log('Error calling OpenAI API:', error);
+//     return NextResponse.json(
+//       {error: 'OpenAI error: '},
+//       {status: 501}
+//     );
+//   }
+// }
 
 const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -116,7 +149,7 @@ export async function callLlamaAPI(prompt: string, model: string) {
       "https://openrouter.ai/api/v1/chat/completions",
       {
         model,
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content: `${prompt}` }],
       },
       {
         headers: {
