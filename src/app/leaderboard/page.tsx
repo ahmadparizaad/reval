@@ -584,7 +584,7 @@ export default function LeaderboardPage() {
         </button>
       </div>
 
-      {useMockData && (
+      {/* {useMockData && (
         <div className="p-4 mb-4 border border-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 dark:border-yellow-700 rounded-lg">
           <div className="flex justify-between items-center">
             <div>
@@ -614,7 +614,7 @@ export default function LeaderboardPage() {
             </button>
           </div>
         </div>
-      )}
+      )} */}
       
       {/* Rankings Section */}
       <Card className="p-6 mb-8 backdrop-blur-sm bg-white bg-opacity-80 border shadow-lg dark:bg-gray-900 dark:border-gray-800">
