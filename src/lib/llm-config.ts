@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import axios from "axios";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
 const token = process.env.GITHUB_TOKEN;
 const endpoint = "https://models.github.ai/inference";
-const defaultAzureModel = "gpt-4o-mini";
+const defaultAzureModel = "openai/gpt-4.1";
 
 export async function callAzureOpenAI(prompt: string, model?: string) {
   if (!token) {
@@ -24,7 +25,7 @@ export async function callAzureOpenAI(prompt: string, model?: string) {
       ],
       temperature: 1.0,
       top_p: 1.0,
-      model: model || defaultAzureModel,
+      model: defaultAzureModel,
     });
 
     return {
@@ -41,8 +42,9 @@ export async function callAzureOpenAI(prompt: string, model?: string) {
 }
 export async function callGemini(prompt: string, model: string) {
     try{
+      const geminiModel = 'gemini-2.0-flash';
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         contents: [{
           parts: [{ text: prompt }]
@@ -145,10 +147,11 @@ export async function callDeepSeek(prompt: string, model: string) {
 
 export async function callLlamaAPI(prompt: string, model: string) {
   try {
+    const llamaModel = "meta-llama/llama-3.3-70b-instruct:free";
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model,
+        model: llamaModel,
         messages: [{ role: "user", content: `${prompt}` }],
       },
       {

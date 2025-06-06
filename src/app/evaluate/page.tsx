@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -14,7 +14,7 @@ import MarkdownRenderer from '@/components/markdown';
 import { toast } from '@/hooks/use-toast';
 import axios from 'axios';
 import React from 'react';
-import { MetricsLineChart } from '@/components/metrics-line-chart';
+// import { MetricsLineChart } from '@/components/metrics-line-chart';
 
 type Evaluation = {
   coherence: number;
@@ -77,12 +77,77 @@ const StarRating = ({
   );
 };
 
+const ChatCardSkeleton = () => (
+  <Card className="p-6 w-full h-fit backdrop-blur-sm bg-opacity-80 border border-opacity-20 shadow-lg animate-pulse">
+    <div className="space-y-4">
+      {/* Header skeleton lines */}
+      <div className="space-y-2">
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-1/2"></div>
+      </div>
+      
+      {/* Content skeleton lines */}
+      <div className="space-y-2">
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-full"></div>
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-5/6"></div>
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-4/5"></div>
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-2/3"></div>
+      </div>
+      
+      {/* Metrics skeleton */}
+      <div className="space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-1/3"></div>
+        <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-1/4"></div>
+        <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-1/3"></div>
+        <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-1/4"></div>
+      </div>
+      
+      {/* Rating skeleton */}
+      <div className="space-y-2 pt-2">
+        <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-20"></div>
+        <div className="flex space-x-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <div key={star} className="h-5 w-5 bg-gray-300 dark:bg-gray-600 rounded"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </Card>
+);
+
+const LoadingSkeletonCards = () => (
+  <div className="grid grid-cols-3 gap-6 w-full">
+    <ChatCardSkeleton />
+    <ChatCardSkeleton />
+    <ChatCardSkeleton />
+  </div>
+);
+
 export default function EvaluatePage() {
   const [prompt, setPrompt] = useState('');
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [previousResponses, setPreviousResponses] = useState<Response[]>([]);
   const [isSendingFeedback, setIsSendingFeedback] = useState(false);
+  
+  // ✅ Add ref for auto-scrolling
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  // ✅ Auto-scroll to bottom when new response is added
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [previousResponses, isEvaluating]);
+
+  // ✅ Handle Enter key press
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleEvaluate();
+    }
+  };
 
   const handleRating = (index: number, model: 'ChatGPT' | 'Gemini' | 'Llama', rating: number) => {
     setPreviousResponses(prev => {
@@ -207,6 +272,14 @@ export default function EvaluatePage() {
     }
 
     setIsEvaluating(true);
+    
+    // ✅ Scroll to bottom immediately when starting evaluation
+    setTimeout(() => {
+      if (bottomRef.current) {
+        bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+    
     try {
       console.log(selectedModels);
       console.log("Selected models",selectedModels);
@@ -235,6 +308,7 @@ export default function EvaluatePage() {
           feedbackSubmitted: false
         },
       ]);
+      
       console.log('geminiResponse: ', data.geminiResponse);
       console.log('openaiResponse: ', data.openaiResponse);
       console.log('llamaResponse: ', data.llamaResponse);
@@ -284,23 +358,23 @@ export default function EvaluatePage() {
         </div>
       </div>
 
-        <div className="w-full mb-16 px-5 max-w-7xl mx-auto">
-          {previousResponses.map((response, index) => (
-            <React.Fragment key={index}>
+      <div className="w-full mb-16 px-5 max-w-7xl mx-auto">
+        {/* ✅ Show all previous responses FIRST */}
+        {previousResponses.map((response, index) => (
+          <React.Fragment key={index}>
             <div className="flex justify-start ml-3 mt-5 mb-2">
               <Card className="px-5 my-4 py-3 w-fit max-w-5xl rounded-3xl bg-gray-200 dark:bg-gray-800 dark:text-white dark:border-gray-700 border-gray-300 shadow-md">
-                {response.openaiResponse && (
-                  <>
-                  <MarkdownRenderer content={response.prompt} />
-                  </>
-                )}
+                <MarkdownRenderer content={response.prompt} />
               </Card>
             </div>
-            <div className="grid grid-cols-3 gap-6 w-full">                <Card 
+            
+            <div className="grid grid-cols-3 gap-6 w-full">
+              {/* ChatGPT Card */}
+              <Card 
                 className={`p-6 w-full h-fit backdrop-blur-sm bg-opacity-80 border border-opacity-20 shadow-lg transition-all duration-300 ${
-                  response.evaluation?.ChatGPT.overall_score > 0.7 
+                  (response.evaluation?.ChatGPT?.overall_score ?? 0) > 0.7 
                     ? 'bg-gradient-to-br from-green-100 to-green-200 border-green-300 dark:from-green-900/30 dark:to-green-800/40 dark:border-green-700/50' 
-                    : response.evaluation?.ChatGPT.overall_score > 0.4 
+                    : (response.evaluation?.ChatGPT?.overall_score ?? 0) > 0.4 
                       ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200 dark:from-yellow-900/30 dark:to-amber-800/40 dark:border-yellow-700/50' 
                       : 'bg-gradient-to-br from-red-50 to-red-100 border-red-200 dark:from-red-900/30 dark:to-red-800/40 dark:border-red-700/50'
                 }`}
@@ -310,10 +384,10 @@ export default function EvaluatePage() {
                     <MarkdownRenderer content={response.openaiResponse.text} />
                     <br />
                     <div className="text-sm mt-2 font-medium">
-                      <strong>Score:</strong> {response.evaluation?.ChatGPT.overall_score.toFixed(2)}<br />
-                      <strong>Coherence:</strong> {response.evaluation?.ChatGPT.coherence.toFixed(2)}<br />
-                      <strong>Token Overlap:</strong> {response.evaluation?.ChatGPT.token_overlap.toFixed(2)}<br />
-                      <strong>Length Ratio:</strong> {response.evaluation?.ChatGPT.length_ratio.toFixed(2)}
+                      <strong>Score:</strong> {(response.evaluation?.ChatGPT?.overall_score ?? 0).toFixed(2)}<br />
+                      <strong>Coherence:</strong> {(response.evaluation?.ChatGPT?.coherence ?? 0).toFixed(2)}<br />
+                      <strong>Token Overlap:</strong> {(response.evaluation?.ChatGPT?.token_overlap ?? 0).toFixed(2)}<br />
+                      <strong>Length Ratio:</strong> {(response.evaluation?.ChatGPT?.length_ratio ?? 0).toFixed(2)}
                     </div>
                     <div className="mt-3">
                       <p className="text-sm font-medium mb-1">Your Rating:</p>
@@ -324,11 +398,14 @@ export default function EvaluatePage() {
                     </div>
                   </>
                 )}
-              </Card>                <Card 
+              </Card>
+
+              {/* Llama Card */}
+              <Card 
                 className={`p-6 w-full h-fit backdrop-blur-sm bg-opacity-80 border border-opacity-20 shadow-lg transition-all duration-300 ${
-                  response.evaluation?.Llama.overall_score > 0.7 
+                  (response.evaluation?.Llama?.overall_score ?? 0) > 0.7 
                     ? 'bg-gradient-to-br from-green-100 to-green-200 border-green-300 dark:from-green-900/30 dark:to-green-800/40 dark:border-green-700/50' 
-                    : response.evaluation?.Llama.overall_score > 0.4 
+                    : (response.evaluation?.Llama?.overall_score ?? 0) > 0.4 
                       ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200 dark:from-yellow-900/30 dark:to-amber-800/40 dark:border-yellow-700/50' 
                       : 'bg-gradient-to-br from-red-50 to-red-100 border-red-200 dark:from-red-900/30 dark:to-red-800/40 dark:border-red-700/50'
                 }`}
@@ -338,10 +415,10 @@ export default function EvaluatePage() {
                     <MarkdownRenderer content={response.llamaResponse.text} />
                     <br />
                     <div className="text-sm mt-2 font-medium">
-                      <strong>Score:</strong> {response.evaluation?.Llama.overall_score.toFixed(2)}<br />
-                      <strong>Coherence:</strong> {response.evaluation?.Llama.coherence.toFixed(2)}<br />
-                      <strong>Token Overlap:</strong> {response.evaluation?.Llama.token_overlap.toFixed(2)}<br />
-                      <strong>Length Ratio:</strong> {response.evaluation?.Llama.length_ratio.toFixed(2)}
+                      <strong>Score:</strong> {(response.evaluation?.Llama?.overall_score ?? 0).toFixed(2)}<br />
+                      <strong>Coherence:</strong> {(response.evaluation?.Llama?.coherence ?? 0).toFixed(2)}<br />
+                      <strong>Token Overlap:</strong> {(response.evaluation?.Llama?.token_overlap ?? 0).toFixed(2)}<br />
+                      <strong>Length Ratio:</strong> {(response.evaluation?.Llama?.length_ratio ?? 0).toFixed(2)}
                     </div>
                     <div className="mt-3">
                       <p className="text-sm font-medium mb-1">Your Rating:</p>
@@ -352,12 +429,14 @@ export default function EvaluatePage() {
                     </div>
                   </>
                 )}
-              </Card>                
+              </Card>
+
+              {/* Gemini Card */}
               <Card 
                 className={`p-6 w-full h-fit backdrop-blur-sm bg-opacity-80 border border-opacity-20 shadow-lg transition-all duration-300 ${
-                  response.evaluation?.Gemini.overall_score > 0.7 
+                  (response.evaluation?.Gemini?.overall_score ?? 0) > 0.7 
                     ? 'bg-gradient-to-br from-green-100 to-green-200 border-green-300 dark:from-green-900/30 dark:to-green-800/40 dark:border-green-700/50' 
-                    : response.evaluation?.Gemini.overall_score > 0.4 
+                    : (response.evaluation?.Gemini?.overall_score ?? 0) > 0.4 
                       ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200 dark:from-yellow-900/30 dark:to-amber-800/40 dark:border-yellow-700/50' 
                       : 'bg-gradient-to-br from-red-50 to-red-100 border-red-200 dark:from-red-900/30 dark:to-red-800/40 dark:border-red-700/50'
                 }`}
@@ -367,10 +446,10 @@ export default function EvaluatePage() {
                     <MarkdownRenderer content={response.geminiResponse.text} />
                     <br />
                     <div className="text-sm mt-2 font-medium">
-                      <strong>Score:</strong> {response.evaluation?.Gemini.overall_score.toFixed(2)}<br />
-                      <strong>Coherence:</strong> {response.evaluation?.Gemini.coherence.toFixed(2)}<br />
-                      <strong>Token Overlap:</strong> {response.evaluation?.Gemini.token_overlap.toFixed(2)}<br />
-                      <strong>Length Ratio:</strong> {response.evaluation?.Gemini.length_ratio.toFixed(2)}
+                      <strong>Score:</strong> {(response.evaluation?.Gemini?.overall_score ?? 0).toFixed(2)}<br />
+                      <strong>Coherence:</strong> {(response.evaluation?.Gemini?.coherence ?? 0).toFixed(2)}<br />
+                      <strong>Token Overlap:</strong> {(response.evaluation?.Gemini?.token_overlap ?? 0).toFixed(2)}<br />
+                      <strong>Length Ratio:</strong> {(response.evaluation?.Gemini?.length_ratio ?? 0).toFixed(2)}
                     </div>
                     <div className="mt-3">
                       <p className="text-sm font-medium mb-1">Your Rating:</p>
@@ -383,11 +462,9 @@ export default function EvaluatePage() {
                 )}
               </Card>
             </div>
-            {/* Add the metrics line chart here */}
-            <div className="w-full px-4">
-              <MetricsLineChart evaluations={response.evaluation} />
-            </div>
-              {!response.feedbackSubmitted && (
+
+            {/* Feedback submission buttons */}
+            {!response.feedbackSubmitted && (
               <div className="flex justify-center mt-4 mb-8">
                 <Button
                   onClick={() => submitFeedback(index)}
@@ -409,40 +486,62 @@ export default function EvaluatePage() {
                 </div>
               </div>
             )}
-            </React.Fragment>
-          ))}
-        </div>
-        <Card 
-          className="p-4 rounded-xl fixed bottom-0 mb-2 mx-2 left-0 right-0 bg-white dark:bg-gray-900 shadow-2xl dark:border-gray-800"
-        >
-  <div className="flex items-center relative w-full px-4">
-    {/* Input Field */}
-    <div className="relative flex w-full">
-      <Input
-        placeholder="Enter your prompt here..."
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        className="pr-12 h-12 rounded-full shadow-md flex-grow border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
-      />
-      <Button
-        onClick={handleEvaluate}
-        disabled={!prompt || selectedModels.length === 0 || isEvaluating || hasPendingFeedback()}
-        className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full p-0 bg-gray-800 hover:bg-gray-600"
-        variant="ghost"
-        title={hasPendingFeedback() ? "Please rate all responses before submitting a new prompt" : ""}
-      >
-        {isEvaluating ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-5 w-5 text-white" />}
-      </Button>
-    </div>
+          </React.Fragment>
+        ))}
 
-    {/* Model Selector Dropdown */}
-    <ModelSelector selectedModels={selectedModels} onSelectModels={setSelectedModels} />
-  </div>
-</Card>
-
-
-
+        {/* ✅ NOW show loading skeleton AFTER all existing responses */}
+        {isEvaluating && (
+          <div className="space-y-6">
+            {/* Show the current prompt being evaluated */}
+            <div className="flex justify-start ml-3 mt-5 mb-2">
+              <Card className="px-5 my-4 py-3 w-fit max-w-5xl rounded-3xl bg-gray-200 dark:bg-gray-800 dark:text-white dark:border-gray-700 border-gray-300 shadow-md">
+                <MarkdownRenderer content={prompt} />
+              </Card>
+            </div>
+            
+            {/* Loading skeleton cards */}
+            <LoadingSkeletonCards />
+            
+            {/* Loading message */}
+            <div className="flex justify-center mt-4 mb-8">
+              <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm font-medium">Generating responses from AI models...</span>
+              </div>
+            </div>
+          </div>
+        )}
         
+        {/* ✅ Invisible div for auto-scrolling */}
+        <div ref={bottomRef} className="h-4" />
+      </div>
+
+      {/* Fixed input card at bottom */}
+      <Card 
+        className="p-4 rounded-xl fixed bottom-0 mb-2 mx-2 left-0 right-0 bg-white dark:bg-gray-900 shadow-2xl dark:border-gray-800"
+      >
+        <div className="flex items-center relative w-full px-4">
+          <div className="relative flex w-full">
+            <Input
+              placeholder="Enter your prompt here..."
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="pr-12 h-12 rounded-full shadow-md flex-grow border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+            />
+            <Button
+              onClick={handleEvaluate}
+              disabled={!prompt || selectedModels.length === 0 || isEvaluating || hasPendingFeedback()}
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full p-0 bg-gray-800 hover:bg-gray-600"
+              variant="ghost"
+              title={hasPendingFeedback() ? "Please rate all responses before submitting a new prompt" : ""}
+            >
+              {isEvaluating ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-5 w-5 text-white" />}
+            </Button>
+          </div>
+          <ModelSelector selectedModels={selectedModels} onSelectModels={setSelectedModels} />
+        </div>
+      </Card>
     </div>
   );
 }

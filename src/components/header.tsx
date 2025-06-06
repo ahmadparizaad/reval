@@ -83,12 +83,12 @@ export default function Header() {
             >
               Leaderboard
             </button>
-            <button 
+            {/* <button 
               onClick={() => handleProtectedNavigation('/history')}
               className="transition-colors hover:text-foreground/80"
             >
               History
-            </button>
+            </button> */}
           </nav>
         </div>
         <div className="flex flex-1 items-center justify-end">
